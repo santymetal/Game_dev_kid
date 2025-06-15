@@ -1,13 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Builder - Kids Game Creator</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 600px;
+            margin: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .mic-button {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e74c3c, #f39c12);
+            border: none;
+            color: white;
+            font-size: 4em;
+            cursor: pointer;
+            margin: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .mic-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .mic-button.listening {
+            animation: pulse 1s infinite;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .transcript {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 50px;
+            color: #2c3e50;
+            font-size: 1.1em;
+            border: 2px solid #e9ecef;
+        }
+        
+        .game-result {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #155724;
+        }
+        
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .example {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            color: #856404;
+        }
+        
+        .status {
+            font-size: 1.3em;
+            margin: 15px 0;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Voice Builder</h1>
+        <p class="subtitle">Tell me your game idea and I'll build it!</p>
+        
+        <div class="status" id="status">Ready to listen!</div>
+        
+        <button class="mic-button" id="micButton">🎤</button>
+        
+        <div class="transcript" id="transcript">Click the microphone and speak your game idea...</div>
+        
+        <div id="gameResult" style="display: none;"></div>
+        
+        <div class="examples">
+            <div class="example">
+                <strong>Try saying:</strong><br>
+                "Jumping frog game"
+            </div>
+            <div class="example">
+                <strong>Try saying:</strong><br>
+                "Car racing adventure"
+            </div>
+            <div class="example">
+                <strong>Try saying:</strong><br>
+                "Color puzzle match"
+            </div>
+            <div class="example">
+                <strong>Try saying:</strong><br>
+                "Draw and paint art"
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isListening = false;
+        let recognition;
+        
+        const micButton = document.getElementById('micButton');
+        const status = document.getElementById('status');
+        const transcript = document.getElementById('transcript');
+        const gameResult = document.getElementById('gameResult');
+        
+        // Check for speech recognition support
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = function() {
+                isListening = true;
+                micButton.classList.add('listening');
+                micButton.innerHTML = '🛑';
+                status.textContent = 'Listening... speak your game idea!';
+            };
+            
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        transcript.textContent = event.results[i][0].transcript;
+                    }
+                }
+                
+                if (finalTranscript) {
+                    transcript.textContent = finalTranscript;
+                    generateGame(finalTranscript);
+                }
+            };
+            
+            recognition.onend = function() {
+                isListening = false;
+                micButton.classList.remove('listening');
+                micButton.innerHTML = '🎤';
+                status.textContent = 'Click to speak again!';
+            };
+            
+            recognition.onerror = function(event) {
+                status.textContent = 'Sorry, I had trouble hearing you. Try again!';
+                console.error('Speech recognition error:', event.error);
+            };
+        } else {
+            status.textContent = 'Voice recognition not supported in this browser';
+            micButton.disabled = true;
+        }
+        
+        micButton.addEventListener('click', function() {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                transcript.textContent = 'Listening...';
+                gameResult.style.display = 'none';
+                recognition.start();
+            }
+        });
+        
+        async function generateGame(text) {
+            status.textContent = 'Creating your game...';
+            
+            try {
+                const response = await fetch('/api/voice/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ transcript: text })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    gameResult.innerHTML = `
+                        <h3>🎉 Your Game is Ready!</h3>
+                        <h4>${result.interpretation.title}</h4>
+                        <p><strong>Character:</strong> ${result.interpretation.character}</p>
+                        <p><strong>Theme:</strong> ${result.interpretation.theme}</p>
+                        <p><em>${result.interpretation.encouragement}</em></p>
+                        <p><strong>Instructions:</strong> ${result.game.instructions}</p>
+                    `;
+                    gameResult.style.display = 'block';
+                    status.textContent = 'Game created! Try another idea!';
+                } else {
+                    status.textContent = 'Oops! Try saying your idea again.';
+                }
+            } catch (error) {
+                status.textContent = 'Something went wrong. Try again!';
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
 </html>
