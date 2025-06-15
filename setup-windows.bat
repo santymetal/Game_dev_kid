@@ -1,8 +1,8 @@
 @echo off
 echo Setting up Voice Builder for Windows...
 
-:: Copy the GitHub-ready package.json
-copy package-github.json package.json
+:: Copy the local development package.json
+copy package-local.json package.json
 
 :: Install dependencies
 echo Installing dependencies...

@@ -1,0 +1,54 @@
+{
+  "name": "voice-builder",
+  "version": "1.0.0",
+  "description": "Voice-enabled creative platform for children to create games",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "NODE_ENV=development tsx server/index.ts",
+    "dev:client": "vite --config vite.config.local.ts",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build --config vite.config.local.ts",
+    "build:server": "esbuild server/index.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist/index.js --external:express",
+    "start": "NODE_ENV=production node dist/index.js",
+    "check": "tsc --noEmit",
+    "setup": "npm install && echo 'Setup complete! Run: npm run dev'"
+  },
+  "keywords": ["voice", "games", "children", "creative", "education"],
+  "author": "Voice Builder",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "wouter": "^3.0.0",
+    "@tanstack/react-query": "^5.17.19",
+    "lucide-react": "^0.312.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.2.0",
+    "class-variance-authority": "^0.7.0",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-toast": "^1.1.5",
+    "zod": "^3.22.4",
+    "nanoid": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
+    "esbuild": "^0.19.11",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
