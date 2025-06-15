@@ -66,8 +66,9 @@
   }
 
   body {
-    @apply font-nunito antialiased bg-gradient-to-br from-sky-400 to-turquoise-400 text-foreground min-h-screen;
+    @apply font-nunito antialiased text-foreground min-h-screen;
     font-family: 'Nunito', sans-serif;
+    background: linear-gradient(135deg, hsl(200, 71%, 55%) 0%, hsl(176, 62%, 55%) 100%);
   }
 }
 

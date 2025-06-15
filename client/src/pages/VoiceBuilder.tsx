@@ -30,7 +30,7 @@ export default function VoiceBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-400 to-turquoise-400">
+    <div className="min-h-screen" style={{background: 'linear-gradient(135deg, hsl(200, 71%, 55%) 0%, hsl(176, 62%, 55%) 100%)'}}>
       {/* Header */}
       <header className="bg-white/90 backdrop-blur-sm shadow-lg sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">

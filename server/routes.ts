@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
 import { insertGameIdeaSchema } from "@shared/schema.js";
-import { interpretChildIdea, generateEncouragement } from "./services/openai.js";
+import { interpretChildIdeaLocal, generateEncouragementLocal } from "./services/localGameGenerator.js";
 import { generateGameCode } from "./services/gameGenerator.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -18,8 +18,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Use OpenAI to interpret the child's idea
-      const interpretation = await interpretChildIdea(transcript);
+      // Use local interpreter to understand the child's idea
+      const interpretation = interpretChildIdeaLocal(transcript);
       
       // Generate the actual game code
       const generatedGame = generateGameCode(interpretation);
@@ -51,7 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get encouragement message
   app.get("/api/encouragement", async (req, res) => {
     try {
-      const message = await generateEncouragement();
+      const message = generateEncouragementLocal();
       res.json({ message });
     } catch (error) {
       res.json({ message: "You're doing amazing! Keep being creative! 🌟" });
