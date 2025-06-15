@@ -41,9 +41,10 @@ Voice Builder is an interactive web application that allows children (aged 5+) t
 - **Error Handling**: User-friendly error messages for voice recognition failures
 
 ### AI Integration
-- **Provider**: OpenAI GPT-4o for natural language processing
-- **Purpose**: Interprets children's spoken game ideas into structured game configurations
+- **Provider**: Local keyword-based interpreter (no external APIs required)
+- **Purpose**: Interprets children's spoken game ideas using simple keyword matching
 - **Output**: JSON-formatted game specifications including type, theme, characters, and mechanics
+- **Cost**: Completely free - no API keys or external services needed
 
 ### Game Generation Engine
 - **Types Supported**: 
@@ -105,10 +106,10 @@ Voice Builder is an interactive web application that allows children (aged 5+) t
 
 ### Environment Requirements
 - **Node.js**: Version 20+
-- **PostgreSQL**: Version 16+ 
+- **PostgreSQL**: Version 16+ (optional - uses in-memory storage by default)
 - **Environment Variables**: 
-  - `DATABASE_URL`: PostgreSQL connection string
-  - `OPENAI_API_KEY`: OpenAI API access key
+  - `DATABASE_URL`: PostgreSQL connection string (optional)
+  - No external API keys required
 
 ### Development Setup
 - **Command**: `npm run dev` starts development server with hot reload

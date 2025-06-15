@@ -167,19 +167,23 @@ export default function VoiceInterface({ onGameGenerated, isLoading, setIsLoadin
         {/* Helper Prompts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-sunny/20 rounded-2xl p-4 border-2 border-sunny">
-            <h4 className="font-bold text-gray-700 mb-2 font-nunito">💡 Need ideas? Try saying:</h4>
+            <h4 className="font-bold text-gray-700 mb-2 font-nunito">💡 Say these words to make games:</h4>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>"Make a jumping game with a frog"</li>
-              <li>"Create a color matching puzzle"</li>
-              <li>"Build a racing game with cars"</li>
+              <li>"Jump frog adventure"</li>
+              <li>"Race car zoom"</li>
+              <li>"Color puzzle match"</li>
+              <li>"Draw paint art"</li>
+              <li>"Collect treasure hunt"</li>
+              <li>"Hero explores forest"</li>
             </ul>
           </div>
           <div className="bg-mint/20 rounded-2xl p-4 border-2 border-mint">
-            <h4 className="font-bold text-gray-700 mb-2 font-nunito">🎮 What I can build:</h4>
+            <h4 className="font-bold text-gray-700 mb-2 font-nunito">🎮 I understand these words:</h4>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>Simple games with characters</li>
-              <li>Puzzles and matching games</li>
-              <li>Drawing and creative tools</li>
+              <li>Animals: frog, bunny, cat, dog</li>
+              <li>Actions: jump, race, collect, paint</li>
+              <li>Places: forest, space, ocean</li>
+              <li>Things: car, treasure, colors</li>
             </ul>
           </div>
         </div>

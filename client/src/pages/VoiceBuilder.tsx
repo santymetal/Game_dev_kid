@@ -55,8 +55,17 @@ export default function VoiceBuilder() {
               Hi there, Super Creator! 🌟
             </h2>
             <p className="text-xl md:text-2xl text-gray-700 mb-6">
-              Tell me your amazing game idea and I'll help you build it!
+              Tell me what kind of game you want to play and I'll build it for you!
             </p>
+            <div className="bg-sunny/30 rounded-2xl p-4 mb-4 text-center">
+              <p className="text-lg text-gray-700 font-semibold">Try saying things like:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-gray-600">
+                <p>"I want a jumping frog game"</p>
+                <p>"Make a car racing game"</p>
+                <p>"Create a puzzle with colors"</p>
+                <p>"Draw and paint game"</p>
+              </div>
+            </div>
             <div className="flex justify-center mb-6">
               <div className="bg-sunny rounded-full p-4 bounce-gentle">
                 💡
