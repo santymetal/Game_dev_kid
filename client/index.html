@@ -123,6 +123,15 @@
         
         <div id="gameResult" style="display: none;"></div>
         
+        <div id="gameCanvas" style="display: none;">
+            <canvas id="canvas" width="600" height="400" style="border: 3px solid #2ecc71; border-radius: 10px; background: white; cursor: crosshair; display: block; margin: 20px auto;"></canvas>
+            <div style="text-align: center; margin: 10px;">
+                <button id="restartBtn" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; margin: 5px;">🔄 Restart</button>
+                <button id="newGameBtn" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; margin: 5px;">🎮 New Game</button>
+            </div>
+            <div id="gameInstructions" style="text-align: center; margin: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; color: #2c3e50;"></div>
+        </div>
+        
         <div class="examples">
             <div class="example">
                 <strong>Try saying:</strong><br>
@@ -210,6 +219,9 @@
             }
         });
         
+        let currentGameInstance = null;
+        let animationId = null;
+        
         async function generateGame(text) {
             status.textContent = 'Creating your game...';
             
@@ -231,10 +243,13 @@
                         <p><strong>Character:</strong> ${result.interpretation.character}</p>
                         <p><strong>Theme:</strong> ${result.interpretation.theme}</p>
                         <p><em>${result.interpretation.encouragement}</em></p>
-                        <p><strong>Instructions:</strong> ${result.game.instructions}</p>
+                        <button onclick="playGame('${result.game.gameCode.replace(/'/g, "\\'")}', '${result.game.instructions}')" 
+                                style="background: #27ae60; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; cursor: pointer; margin: 10px;">
+                            ▶️ Play Game!
+                        </button>
                     `;
                     gameResult.style.display = 'block';
-                    status.textContent = 'Game created! Try another idea!';
+                    status.textContent = 'Game created! Click Play Game!';
                 } else {
                     status.textContent = 'Oops! Try saying your idea again.';
                 }
@@ -243,6 +258,144 @@
                 console.error('Error:', error);
             }
         }
+        
+        function playGame(gameCode, instructions) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const gameCanvas = document.getElementById('gameCanvas');
+            const gameInstructions = document.getElementById('gameInstructions');
+            
+            // Stop any existing game
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            // Show game canvas
+            gameCanvas.style.display = 'block';
+            gameInstructions.textContent = instructions;
+            
+            try {
+                // Create and initialize the game
+                const gameFunction = new Function('return (' + gameCode + ')')();
+                currentGameInstance = gameFunction;
+                
+                // Set up event listeners
+                const keys = {};
+                
+                function handleKeyDown(e) {
+                    keys[e.key] = true;
+                    if (currentGameInstance.game) {
+                        currentGameInstance.game.keys = keys;
+                    }
+                    e.preventDefault();
+                }
+                
+                function handleKeyUp(e) {
+                    keys[e.key] = false;
+                    if (currentGameInstance.game) {
+                        currentGameInstance.game.keys = keys;
+                    }
+                    e.preventDefault();
+                }
+                
+                function handleMouseDown(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    if (currentGameInstance.handleMouseDown) {
+                        currentGameInstance.handleMouseDown(x, y);
+                    }
+                    if (currentGameInstance.handleClick) {
+                        currentGameInstance.handleClick(x, y);
+                    }
+                }
+                
+                function handleMouseMove(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    if (currentGameInstance.handleMouseMove) {
+                        currentGameInstance.handleMouseMove(x, y);
+                    }
+                }
+                
+                function handleMouseUp() {
+                    if (currentGameInstance.handleMouseUp) {
+                        currentGameInstance.handleMouseUp();
+                    }
+                }
+                
+                // Remove existing listeners and add new ones
+                document.removeEventListener('keydown', handleKeyDown);
+                document.removeEventListener('keyup', handleKeyUp);
+                canvas.removeEventListener('mousedown', handleMouseDown);
+                canvas.removeEventListener('mousemove', handleMouseMove);
+                canvas.removeEventListener('mouseup', handleMouseUp);
+                
+                document.addEventListener('keydown', handleKeyDown);
+                document.addEventListener('keyup', handleKeyUp);
+                canvas.addEventListener('mousedown', handleMouseDown);
+                canvas.addEventListener('mousemove', handleMouseMove);
+                canvas.addEventListener('mouseup', handleMouseUp);
+                
+                // Game loop
+                function gameLoop() {
+                    if (currentGameInstance) {
+                        // Update game
+                        if (currentGameInstance.update) {
+                            currentGameInstance.update();
+                        }
+                        
+                        // Render game
+                        if (currentGameInstance.render) {
+                            currentGameInstance.render(ctx, canvas);
+                        }
+                    }
+                    
+                    animationId = requestAnimationFrame(gameLoop);
+                }
+                
+                // Start the game
+                gameLoop();
+                
+            } catch (error) {
+                console.error('Error starting game:', error);
+                status.textContent = 'Error starting game. Try creating a new one!';
+            }
+        }
+        
+        // Game control buttons
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            if (currentGameInstance) {
+                // Reset game state
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                try {
+                    const gameFunction = new Function('return (' + currentGameInstance.toString() + ')')();
+                    currentGameInstance = gameFunction;
+                } catch (error) {
+                    console.error('Error restarting game:', error);
+                }
+            }
+        });
+        
+        document.getElementById('newGameBtn').addEventListener('click', function() {
+            // Stop current game
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            currentGameInstance = null;
+            
+            // Hide game canvas
+            document.getElementById('gameCanvas').style.display = 'none';
+            document.getElementById('gameResult').style.display = 'none';
+            
+            // Reset interface
+            status.textContent = 'Ready to listen!';
+            transcript.textContent = 'Click the microphone and speak your game idea...';
+        });
     </script>
 </body>
 </html>
