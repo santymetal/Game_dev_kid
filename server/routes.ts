@@ -113,6 +113,7 @@ function generateCustomGameCode(gameType: string, interpretation: any, customDat
                 Math.abs(game.player.y - item.y) < 30) {
               item.collected = true;
               game.score += 10;
+              if (window.playSound) window.playSound('collect');
             }
           });
         }

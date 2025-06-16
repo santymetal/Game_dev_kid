@@ -187,6 +187,8 @@
                 micButton.classList.add('listening');
                 micButton.innerHTML = '🛑';
                 status.textContent = 'Listening... speak your game idea!';
+                // Play a gentle listening sound
+                setTimeout(() => playSound('button'), 100);
             };
             
             recognition.onresult = function(event) {
@@ -296,6 +298,16 @@
                     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
                     oscillator.start();
                     oscillator.stop(audioContext.currentTime + 0.1);
+                    break;
+                    
+                case 'success':
+                    // Construction step success sound
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(900, audioContext.currentTime + 0.15);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
                     break;
             }
         }
@@ -441,6 +453,7 @@
                 const result = await response.json();
                 
                 if (result.success) {
+                    playSound('success');
                     constructionData.gameData = result.gameData;
                     
                     if (result.completed) {
@@ -516,6 +529,9 @@
                         throw e;
                     }
                 `;
+                
+                // Make sound functions available to game code
+                window.playSound = playSound;
                 
                 const gameFunction = new Function(wrappedCode);
                 currentGameInstance = gameFunction();
@@ -612,6 +628,7 @@
         
         // Game control buttons
         document.getElementById('restartBtn').addEventListener('click', function() {
+            playSound('button');
             if (currentGameInstance) {
                 // Reset game state
                 const canvas = document.getElementById('canvas');
