@@ -120,7 +120,18 @@ Voice Builder is an interactive web application that allows children (aged 5+) t
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+- June 16, 2025: Major shift from instant game generation to step-by-step construction process
+  - Added guided 4-step construction workflow for each game type
+  - Children now make choices that directly affect their game (character, speed, theme, collectibles)
+  - Added progress bar and visual feedback during construction
+  - Custom game code generation based on user choices
+  - Celebration sequence when construction completes
+  - Educational focus on decision-making and cause-effect learning
+
 ## Changelog
 
 Changelog:
 - June 15, 2025. Initial setup
+- June 16, 2025. Converted to step-by-step game construction system

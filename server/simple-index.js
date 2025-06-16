@@ -47,9 +47,16 @@ function detectGameType(text) {
   return 'jumping'; // default
 }
 
-function generateGameCode(gameType, colors) {
+function generateGameCode(gameType, colors, customData = {}) {
   switch(gameType) {
     case 'jumping':
+      const playerSpeed = customData.speed === '⚡ Super Fast' ? 6 : customData.speed === '🐌 Slow and Steady' ? 2 : 3;
+      const jumpPower = customData.speed === '⚡ Super Fast' ? -18 : customData.speed === '🐌 Slow and Steady' ? -12 : -15;
+      const characterColor = customData.character === '🐸 Green Frog' ? '#32CD32' : 
+                           customData.character === '🐰 Pink Bunny' ? '#FFB6C1' : '#4169E1';
+      const bgColor = customData.theme === '🌳 Forest' ? '#E6FFE6' :
+                     customData.theme === '🏠 House' ? '#FFF8DC' : '#191970';
+      
       return `
         const game = {
           player: { x: 50, y: 300, width: 40, height: 40, velocityY: 0, onGround: true },
@@ -64,7 +71,12 @@ function generateGameCode(gameType, colors) {
           ],
           score: 0,
           keys: {},
-          gravity: 0.8
+          gravity: 0.8,
+          playerSpeed: ${playerSpeed},
+          jumpPower: ${jumpPower},
+          characterColor: '${characterColor}',
+          bgColor: '${bgColor}',
+          collectibleType: '${customData.collectible || '⭐ Golden Stars'}'
         };
 
         function update() {
@@ -72,10 +84,10 @@ function generateGameCode(gameType, colors) {
             game.player.velocityY += game.gravity;
           }
           
-          if (game.keys['ArrowLeft']) game.player.x -= 3;
-          if (game.keys['ArrowRight']) game.player.x += 3;
+          if (game.keys['ArrowLeft']) game.player.x -= game.playerSpeed;
+          if (game.keys['ArrowRight']) game.player.x += game.playerSpeed;
           if (game.keys[' '] && game.player.onGround) {
-            game.player.velocityY = -15;
+            game.player.velocityY = game.jumpPower;
             game.player.onGround = false;
           }
           
@@ -104,7 +116,7 @@ function generateGameCode(gameType, colors) {
         }
         
         function render(ctx, canvas) {
-          ctx.fillStyle = '${colors.background}';
+          ctx.fillStyle = game.bgColor;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
           ctx.fillStyle = '${colors.secondary}';
@@ -112,10 +124,12 @@ function generateGameCode(gameType, colors) {
             ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
           });
           
-          ctx.fillStyle = '${colors.primary}';
+          ctx.fillStyle = game.characterColor;
           ctx.fillRect(game.player.x, game.player.y, game.player.width, game.player.height);
           
-          ctx.fillStyle = '#FFD700';
+          const collectibleColor = game.collectibleType.includes('Stars') ? '#FFD700' : 
+                                  game.collectibleType.includes('Apples') ? '#FF0000' : '#FF69B4';
+          ctx.fillStyle = collectibleColor;
           game.collectibles.forEach(item => {
             if (!item.collected) {
               ctx.beginPath();
@@ -127,6 +141,7 @@ function generateGameCode(gameType, colors) {
           ctx.fillStyle = '#000';
           ctx.font = '20px Arial';
           ctx.fillText('Score: ' + game.score, 10, 30);
+          ctx.fillText('Collect: ' + game.collectibleType.split(' ')[1], 10, 60);
         }
         
         return { game, update, render };
@@ -381,11 +396,38 @@ function generateGameCode(gameType, colors) {
   }
 }
 
+// Step-by-step game construction
+const constructionSteps = {
+  jumping: [
+    { step: 1, question: "What should your character look like?", options: ["🐸 Green Frog", "🐰 Pink Bunny", "🦘 Blue Kangaroo"], property: "character" },
+    { step: 2, question: "Where should your character play?", options: ["🌳 Forest", "🏠 House", "🌙 Space"], property: "theme" },
+    { step: 3, question: "How fast should your character move?", options: ["🐌 Slow and Steady", "⚡ Super Fast", "🚶 Just Right"], property: "speed" },
+    { step: 4, question: "What should your character collect?", options: ["⭐ Golden Stars", "🍎 Tasty Apples", "💎 Shiny Gems"], property: "collectible" }
+  ],
+  racing: [
+    { step: 1, question: "What should you drive?", options: ["🚗 Red Car", "🚌 School Bus", "🚁 Helicopter"], property: "vehicle" },
+    { step: 2, question: "Where should you race?", options: ["🏁 Race Track", "🌆 City Streets", "🏔️ Mountain Road"], property: "track" },
+    { step: 3, question: "What obstacles should you avoid?", options: ["🚧 Orange Cones", "🪨 Big Rocks", "🌊 Water Puddles"], property: "obstacles" },
+    { step: 4, question: "How should you win?", options: ["🏁 Reach the Finish", "⏰ Beat the Timer", "🏆 Collect Most Points"], property: "winCondition" }
+  ],
+  puzzle: [
+    { step: 1, question: "What colors should you match?", options: ["🌈 Rainbow Colors", "🍬 Candy Colors", "🌸 Flower Colors"], property: "colorTheme" },
+    { step: 2, question: "How many cards should you match?", options: ["🔢 Easy (8 cards)", "🔢 Medium (12 cards)", "🔢 Hard (16 cards)"], property: "difficulty" },
+    { step: 3, question: "What shape should the cards be?", options: ["⬜ Square Cards", "🔴 Round Cards", "⭐ Star Cards"], property: "cardShape" },
+    { step: 4, question: "What happens when you match?", options: ["✨ Sparkle Effect", "🎵 Happy Sound", "🎉 Celebration"], property: "matchEffect" }
+  ],
+  creative: [
+    { step: 1, question: "What should you draw with?", options: ["🖌️ Paint Brush", "✏️ Pencil", "🖍️ Crayon"], property: "tool" },
+    { step: 2, question: "What colors do you want?", options: ["🌈 All Colors", "🎨 Bright Colors", "🌸 Soft Colors"], property: "palette" },
+    { step: 3, question: "How big should your brush be?", options: ["🔹 Small Brush", "🔸 Medium Brush", "🔶 Big Brush"], property: "brushSize" },
+    { step: 4, question: "What should you draw on?", options: ["📄 White Paper", "🌌 Starry Sky", "🌊 Ocean Scene"], property: "canvas" }
+  ]
+};
+
 app.post('/api/voice/process', (req, res) => {
   const { transcript } = req.body;
   const gameType = detectGameType(transcript.toLowerCase());
   const template = gameTemplates[gameType];
-  const gameCode = generateGameCode(gameType, template.colors);
   
   res.json({
     success: true,
@@ -395,13 +437,52 @@ app.post('/api/voice/process', (req, res) => {
       title: template.title,
       character: template.character,
       theme: template.theme,
-      encouragement: "Great idea! Let's play!"
+      encouragement: "Great idea! Let's build your game together!"
     },
-    game: {
-      gameCode: gameCode,
-      instructions: `Use arrow keys to control your ${template.character}!`
+    construction: {
+      steps: constructionSteps[gameType],
+      currentStep: 1,
+      totalSteps: constructionSteps[gameType].length
     }
   });
+});
+
+// Handle construction step responses
+app.post('/api/construction/step', (req, res) => {
+  const { gameType, step, choice, gameData } = req.body;
+  
+  const steps = constructionSteps[gameType];
+  const currentStepData = steps[step - 1];
+  
+  // Update game data with choice
+  const updatedGameData = { ...gameData };
+  updatedGameData[currentStepData.property] = choice;
+  
+  if (step < steps.length) {
+    // More steps to go
+    res.json({
+      success: true,
+      nextStep: step + 1,
+      stepData: steps[step],
+      gameData: updatedGameData,
+      progress: `Step ${step + 1} of ${steps.length}`
+    });
+  } else {
+    // Final step - generate the game
+    const template = gameTemplates[gameType];
+    const gameCode = generateGameCode(gameType, template.colors, updatedGameData);
+    
+    res.json({
+      success: true,
+      completed: true,
+      gameData: updatedGameData,
+      game: {
+        gameCode: gameCode,
+        instructions: `You built an amazing ${gameType} game! Use arrow keys to play!`
+      },
+      celebration: "🎉 Amazing! You built your very own game! 🎉"
+    });
+  }
 });
 
 app.get('*', (req, res) => {
