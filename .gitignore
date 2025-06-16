@@ -67,3 +67,25 @@ replit.nix
 # Temporary files
 .tmp/
 temp/
+
+# Development and testing files
+test-game.html
+*.test.js
+*.test.ts
+
+# Package variations (keep only main package.json)
+package-*.json
+!package.json
+
+# Local configuration
+*.local.*
+
+# Database files (if using SQLite locally)
+*.db
+*.sqlite
+*.sqlite3
+
+# Editor backups
+*~
+*.bak
+*.orig
