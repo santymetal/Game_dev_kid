@@ -6,7 +6,7 @@ import { interpretChildIdeaLocal, generateEncouragementLocal } from "./services/
 import { generateGameCode } from "./services/gameGenerator.js";
 
 // Step-by-step construction data
-const constructionSteps = {
+const constructionSteps: Record<string, any[]> = {
   jumping: [
     { step: 1, question: "What should your character look like?", options: ["🐸 Green Frog", "🐰 Pink Bunny", "🦘 Blue Kangaroo"], property: "character" },
     { step: 2, question: "Where should your character play?", options: ["🌳 Forest", "🏠 House", "🌙 Space"], property: "theme" },
@@ -30,8 +30,131 @@ const constructionSteps = {
     { step: 2, question: "What colors do you want?", options: ["🌈 All Colors", "🎨 Bright Colors", "🌸 Soft Colors"], property: "palette" },
     { step: 3, question: "How big should your brush be?", options: ["🔹 Small Brush", "🔸 Medium Brush", "🔶 Big Brush"], property: "brushSize" },
     { step: 4, question: "What should you draw on?", options: ["📄 White Paper", "🌌 Starry Sky", "🌊 Ocean Scene"], property: "canvas" }
+  ],
+  adventure: [
+    { step: 1, question: "What should your character look like?", options: ["🐸 Green Frog", "🐰 Pink Bunny", "🦘 Blue Kangaroo"], property: "character" },
+    { step: 2, question: "Where should your character play?", options: ["🌳 Forest", "🏠 House", "🌙 Space"], property: "theme" },
+    { step: 3, question: "How fast should your character move?", options: ["🐌 Slow and Steady", "⚡ Super Fast", "🚶 Just Right"], property: "speed" },
+    { step: 4, question: "What should your character collect?", options: ["⭐ Golden Stars", "🍎 Tasty Apples", "💎 Shiny Gems"], property: "collectible" }
+  ],
+  collection: [
+    { step: 1, question: "What should your character look like?", options: ["🐸 Green Frog", "🐰 Pink Bunny", "🦘 Blue Kangaroo"], property: "character" },
+    { step: 2, question: "Where should your character play?", options: ["🌳 Forest", "🏠 House", "🌙 Space"], property: "theme" },
+    { step: 3, question: "How fast should your character move?", options: ["🐌 Slow and Steady", "⚡ Super Fast", "🚶 Just Right"], property: "speed" },
+    { step: 4, question: "What should your character collect?", options: ["⭐ Golden Stars", "🍎 Tasty Apples", "💎 Shiny Gems"], property: "collectible" }
   ]
 };
+
+// Generate custom game code based on construction choices
+function generateCustomGameCode(gameType: string, interpretation: any, customData: any) {
+  const playerSpeed = customData.speed === '⚡ Super Fast' ? 6 : customData.speed === '🐌 Slow and Steady' ? 2 : 3;
+  const jumpPower = customData.speed === '⚡ Super Fast' ? -18 : customData.speed === '🐌 Slow and Steady' ? -12 : -15;
+  const characterColor = customData.character === '🐸 Green Frog' ? '#32CD32' : 
+                       customData.character === '🐰 Pink Bunny' ? '#FFB6C1' : '#4169E1';
+  const bgColor = customData.theme === '🌳 Forest' ? '#E6FFE6' :
+                 customData.theme === '🏠 House' ? '#FFF8DC' : '#191970';
+  const collectibleType = customData.collectible || '⭐ Golden Stars';
+
+  if (gameType === 'jumping') {
+    return {
+      id: `custom_game_${Date.now()}`,
+      config: interpretation,
+      gameCode: `
+        const game = {
+          player: { x: 50, y: 300, width: 40, height: 40, velocityY: 0, onGround: true },
+          platforms: [
+            { x: 0, y: 350, width: 200, height: 20 },
+            { x: 250, y: 300, width: 150, height: 20 },
+            { x: 450, y: 250, width: 150, height: 20 }
+          ],
+          collectibles: [
+            { x: 300, y: 270, collected: false },
+            { x: 500, y: 220, collected: false }
+          ],
+          score: 0,
+          keys: {},
+          gravity: 0.8,
+          playerSpeed: ${playerSpeed},
+          jumpPower: ${jumpPower},
+          characterColor: '${characterColor}',
+          bgColor: '${bgColor}',
+          collectibleType: '${collectibleType}'
+        };
+
+        function update() {
+          if (!game.player.onGround) {
+            game.player.velocityY += game.gravity;
+          }
+          
+          if (game.keys['ArrowLeft']) game.player.x -= game.playerSpeed;
+          if (game.keys['ArrowRight']) game.player.x += game.playerSpeed;
+          if (game.keys[' '] && game.player.onGround) {
+            game.player.velocityY = game.jumpPower;
+            game.player.onGround = false;
+          }
+          
+          game.player.y += game.player.velocityY;
+          
+          game.player.onGround = false;
+          game.platforms.forEach(platform => {
+            if (game.player.x < platform.x + platform.width &&
+                game.player.x + game.player.width > platform.x &&
+                game.player.y + game.player.height > platform.y &&
+                game.player.y + game.player.height < platform.y + platform.height + 10) {
+              game.player.y = platform.y - game.player.height;
+              game.player.velocityY = 0;
+              game.player.onGround = true;
+            }
+          });
+          
+          game.collectibles.forEach(item => {
+            if (!item.collected && 
+                Math.abs(game.player.x - item.x) < 30 && 
+                Math.abs(game.player.y - item.y) < 30) {
+              item.collected = true;
+              game.score += 10;
+            }
+          });
+        }
+        
+        function render(ctx, canvas) {
+          ctx.fillStyle = game.bgColor;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          ctx.fillStyle = '#8B4513';
+          game.platforms.forEach(platform => {
+            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+          });
+          
+          ctx.fillStyle = game.characterColor;
+          ctx.fillRect(game.player.x, game.player.y, game.player.width, game.player.height);
+          
+          const collectibleColor = game.collectibleType.includes('Stars') ? '#FFD700' : 
+                                  game.collectibleType.includes('Apples') ? '#FF0000' : '#FF69B4';
+          ctx.fillStyle = collectibleColor;
+          game.collectibles.forEach(item => {
+            if (!item.collected) {
+              ctx.beginPath();
+              ctx.arc(item.x, item.y, 10, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          });
+          
+          ctx.fillStyle = '#000';
+          ctx.font = '20px Arial';
+          ctx.fillText('Score: ' + game.score, 10, 30);
+          ctx.fillText('Collect: ' + game.collectibleType.split(' ')[1], 10, 60);
+        }
+        
+        return { game, update, render };
+      `,
+      instructions: `You built an amazing ${gameType} game! Use arrow keys to control your ${customData.character}!`
+    };
+  }
+  
+  // Fallback to default generator for other game types
+  return generateGameCode(interpretation);
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -61,9 +184,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           encouragement: "Great idea! Let's build your game together!"
         },
         construction: {
-          steps: constructionSteps[gameType] || constructionSteps.jumping,
+          steps: constructionSteps[gameType] || constructionSteps['jumping'],
           currentStep: 1,
-          totalSteps: (constructionSteps[gameType] || constructionSteps.jumping).length
+          totalSteps: (constructionSteps[gameType] || constructionSteps['jumping']).length
         }
       });
       
@@ -80,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { gameType, step, choice, gameData } = req.body;
       
-      const steps = constructionSteps[gameType] || constructionSteps.jumping;
+      const steps = constructionSteps[gameType] || constructionSteps['jumping'];
       const currentStepData = steps[step - 1];
       
       // Update game data with choice
@@ -97,10 +220,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           progress: `Step ${step + 1} of ${steps.length}`
         });
       } else {
-        // Final step - generate the game
+        // Final step - generate the game with custom choices
         const interpretation = interpretChildIdeaLocal("jumping game"); // Base interpretation
-        interpretation.customData = updatedGameData; // Add custom choices
-        const generatedGame = generateGameCode(interpretation);
+        interpretation.gameType = gameType; // Ensure correct game type
+        
+        // Apply custom choices to the interpretation
+        if (updatedGameData.character) {
+          interpretation.character = updatedGameData.character.toLowerCase().includes('frog') ? 'frog' : 
+                                   updatedGameData.character.toLowerCase().includes('bunny') ? 'bunny' : 'kangaroo';
+        }
+        if (updatedGameData.theme) {
+          interpretation.theme = updatedGameData.theme.toLowerCase().includes('forest') ? 'forest' : 
+                               updatedGameData.theme.toLowerCase().includes('house') ? 'house' : 'space';
+        }
+        
+        // Generate custom game code
+        const generatedGame = generateCustomGameCode(gameType, interpretation, updatedGameData);
         
         // Store the completed game
         await storage.createGameIdea({
