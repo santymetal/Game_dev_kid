@@ -90,6 +90,7 @@ function generateCustomGameCode(gameType: string, interpretation: any, customDat
           if (game.keys[' '] && game.player.onGround) {
             game.player.velocityY = game.jumpPower;
             game.player.onGround = false;
+            if (window.playSound) window.playSound('jump');
           }
           
           game.player.y += game.player.velocityY;

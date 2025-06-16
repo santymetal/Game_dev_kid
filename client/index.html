@@ -222,6 +222,7 @@
         }
         
         micButton.addEventListener('click', function() {
+            playSound('button');
             if (isListening) {
                 recognition.stop();
             } else {
@@ -233,6 +234,71 @@
         
         let currentGameInstance = null;
         let animationId = null;
+        
+        // Sound system for 5-year-olds
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'jump':
+                    // Happy bounce sound
+                    oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+                    
+                case 'collect':
+                    // Magical collection sound
+                    oscillator.frequency.setValueAtTime(500, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+                    oscillator.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                    
+                case 'celebrate':
+                    // Victory celebration sound
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            const osc = audioContext.createOscillator();
+                            const gain = audioContext.createGain();
+                            osc.connect(gain);
+                            gain.connect(audioContext.destination);
+                            
+                            osc.frequency.setValueAtTime(400 + i * 200, audioContext.currentTime);
+                            gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                            osc.start();
+                            osc.stop(audioContext.currentTime + 0.15);
+                        }, i * 100);
+                    }
+                    break;
+                    
+                case 'button':
+                    // Friendly button click
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                    break;
+            }
+        }
         let constructionData = null;
         
         async function generateGame(text) {
@@ -339,7 +405,10 @@
                     button.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
                 });
                 
-                button.addEventListener('click', () => makeChoice(option));
+                button.addEventListener('click', () => {
+                    playSound('button');
+                    makeChoice(option);
+                });
                 stepOptions.appendChild(button);
             });
             
@@ -396,6 +465,9 @@
         function completeConstruction(result) {
             // Hide construction steps
             document.getElementById('constructionSteps').style.display = 'none';
+            
+            // Play celebration sound
+            playSound('celebrate');
             
             // Show celebration and game
             document.getElementById('gameCanvas').style.display = 'block';
