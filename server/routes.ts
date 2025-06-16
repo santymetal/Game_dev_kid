@@ -59,8 +59,7 @@ function generateCustomGameCode(gameType: string, interpretation: any, customDat
     return {
       id: `custom_game_${Date.now()}`,
       config: interpretation,
-      gameCode: `
-        const game = {
+      gameCode: `const game = {
           player: { x: 50, y: 300, width: 40, height: 40, velocityY: 0, onGround: true },
           platforms: [
             { x: 0, y: 350, width: 200, height: 20 },
@@ -146,8 +145,7 @@ function generateCustomGameCode(gameType: string, interpretation: any, customDat
           ctx.fillText('Collect: ' + game.collectibleType.split(' ')[1], 10, 60);
         }
         
-        return { game, update, render };
-      `,
+        return { game, update, render };`,
       instructions: `You built an amazing ${gameType} game! Use arrow keys to control your ${customData.character}!`
     };
   }

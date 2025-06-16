@@ -427,8 +427,28 @@
             
             try {
                 // Create and initialize the game
-                const gameFunction = new Function('return (' + gameCode + ')')();
-                currentGameInstance = gameFunction;
+                console.log('Game code to execute:', gameCode.substring(0, 200) + '...');
+                
+                // Test with a simple working game first
+                if (!gameCode || gameCode.trim() === '') {
+                    console.error('Empty game code received');
+                    throw new Error('No game code provided');
+                }
+                
+                // Execute the game code in proper scope
+                const wrappedCode = `
+                    try {
+                        ${gameCode}
+                    } catch (e) {
+                        console.error('Game code execution error:', e);
+                        throw e;
+                    }
+                `;
+                
+                const gameFunction = new Function(wrappedCode);
+                currentGameInstance = gameFunction();
+                
+                console.log('Game instance created:', currentGameInstance);
                 
                 // Set up event listeners
                 const keys = {};
@@ -513,6 +533,7 @@
                 
             } catch (error) {
                 console.error('Error starting game:', error);
+                console.error('Game code that failed:', gameCode);
                 status.textContent = 'Error starting game. Try creating a new one!';
             }
         }
