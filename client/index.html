@@ -248,8 +248,20 @@
                 });
                 
                 const result = await response.json();
+                console.log('Full server response:', result);
                 
-                if (result.success) {
+                if (result.success && result.construction && result.construction.steps) {
+                    // Store construction data first
+                    constructionData = {
+                        gameType: result.interpretation.gameType,
+                        steps: result.construction.steps,
+                        currentStep: 1,
+                        totalSteps: result.construction.totalSteps,
+                        gameData: {}
+                    };
+                    
+                    console.log('Construction data stored successfully:', constructionData);
+                    
                     gameResult.innerHTML = `
                         <h3>🎉 Great Idea!</h3>
                         <h4>${result.interpretation.title}</h4>
@@ -262,17 +274,9 @@
                     `;
                     gameResult.style.display = 'block';
                     status.textContent = 'Ready to build your game!';
-                    
-                    // Store construction data
-                    constructionData = {
-                        gameType: result.interpretation.gameType,
-                        steps: result.construction.steps,
-                        currentStep: 1,
-                        totalSteps: result.construction.totalSteps,
-                        gameData: {}
-                    };
                 } else {
                     status.textContent = 'Oops! Try saying your idea again.';
+                    console.log('Server response missing construction data:', result);
                 }
             } catch (error) {
                 status.textContent = 'Something went wrong. Try again!';
@@ -281,6 +285,13 @@
         }
         
         function startConstruction(gameType) {
+            // Check if constructionData exists
+            if (!constructionData || !constructionData.steps) {
+                status.textContent = 'Error loading construction data. Please try again.';
+                console.error('Construction data not available:', constructionData);
+                return;
+            }
+            
             // Hide game result, show construction steps
             document.getElementById('gameResult').style.display = 'none';
             document.getElementById('constructionSteps').style.display = 'block';
